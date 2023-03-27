@@ -1,12 +1,13 @@
 import User from "../models/user.js";
 import crypto from "crypto";
+import jwt from "jsonwebtoken";
 import { v4 as uuidv4 } from "uuid";
 
 export const signUp = async (req, res) => {
   const { firstName, lastName, birthDate, region, gender, email, password } =
     req.body;
 
-  if (!firstName || !email || !password) {
+  if (!firstName || !lastName || !email || !password) {
     return res.status(400).json({
       message: "require all data",
     });
@@ -38,11 +39,15 @@ export const signUp = async (req, res) => {
     await newUser.save();
 
     return res.status(201).json({
+      success: true,
       message: "signup successfull",
       data: newUser,
     });
   } catch (error) {
-    return res.sendStatus(500);
+    return res.status({
+      success: false,
+      message: "signup fail",
+    });
   }
 };
 
@@ -58,13 +63,37 @@ export const logIn = async (req, res) => {
     });
 
     if (userLogIn.length == 0)
-      return res.status(400).json({ message: "wrong information" });
+      return res.status(400).json({ success: false, message: "login fail" });
+    else
+      jwt.sign(
+        {
+          email: userLogIn[0].email,
+          password: userLogIn[0].password,
+        },
+        "Mamathwethwe",
+        {
+          expiresIn: 604800,
+        },
+        (err, token) => {
+          if (err) {
+            console.log(err);
+            return res.status(400).json({
+              message: err,
+            });
+          }
 
-    return res.status(200).json({
-      message: "login successfull",
-      data: userLogIn,
-    });
+          return res.status(200).json({
+            success: true,
+            message: "login successful",
+            data: userLogIn[0],
+            token,
+          });
+        }
+      );
   } catch (error) {
-    return res.sendStatus(500);
+    return res.status({
+      success: false,
+      message: "login fail",
+    });
   }
 };
