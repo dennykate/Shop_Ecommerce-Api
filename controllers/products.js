@@ -111,9 +111,11 @@ export const updateProduct = async (req, res) => {
   if (!id) return res.status(400).json({ message: "missing id" });
 
   try {
-    const updated = await Products.findOneAndUpdate({ id }, req.body, {
-      new: false,
-    });
+    const updated = await Products.findOneAndUpdate(
+      { id },
+      { $set: req.body },
+      { new: true }
+    );
 
     if (!updated) return res.sendStatus(404);
 
